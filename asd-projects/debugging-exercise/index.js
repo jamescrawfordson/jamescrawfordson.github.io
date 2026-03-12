@@ -8,8 +8,8 @@ $(document).ready(function () {
 var doubleMaxSpeed = 5;
 var maxGhosts = 10;
 var $board = $("#board");
-var boardWidth = $($board).width();
-var boardHeight = $($board).height();
+var boardWidth = $($board).width(750);
+var boardHeight = $($board).height(525);
 var ghosts = [];
 var ghostRadius = 10;
 // modify these values if you want faster moving ghosts or a shorter countdown timer
