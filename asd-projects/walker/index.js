@@ -1,42 +1,43 @@
 /* global $, sessionStorage */
 
 $(document).ready(runProgram); // wait for the HTML / CSS elements of the page to fully load, then execute runProgram()
-  var walker;   {
+ 
 function runProgram(){
   ////////////////////////////////////////////////////////////////////////////////
   //////////////////////////// SETUP /////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
-
-walker = {
-  x: 0,
-  y: 0,
-  speedX: 0,
-  speedY: 0
-};
-}
-  // Constant Variables
-  var FRAME_RATE = 60;
-  var FRAMES_PER_SECOND_INTERVAL = 1000 / FRAME_RATE;
+ // Constant Variables
+  const FRAME_RATE = 60;
+  const KEY_INTERVAL = 1000 / FRAME_RATE;
   
-  // Game Item Objects
-const KEY = {
-  ENTER: 13,
-  LEFT: 37,
-  UP: 38,
-  RIGHT: 39,
-  DOWN: 40,
-};
+  // Keyboard mapping
+  const KEY = {
+    LEFT: 37,
+    UP: 38,
+    RIGHT: 39,
+    DOWN: 40
+  };
 
-  // one-time setup
-  var interval = setInterval(newFrame, FRAMES_PER_SECOND_INTERVAL);   // execute newFrame every 0.0166 seconds (60 Frames per second)
+  // Game Item Objects (State Variables)
+  var walker = {
+    positionX: 0,
+    positionY: 0,
+    speedX: 0,
+    speedY: 0,
+    width: $("#walker").width(),
+    height: $("#walker").height()
+  };
 
-  /* 
-  This section is where you set up event listeners for user input.
-  For example, if you wanted to handle a click event on the document, you would replace 'eventType' with 'click', and if you wanted to execute a function named 'handleClick', you would replace 'handleEvent' with 'handleClick'.
+  // Board boundaries
+  var board = {
+    width: $("#board").width(),
+    height: $("#board").height()
+  };
 
-  Note: You can have multiple event listeners for different types of events.
-  */
-  $(document).on("keydown", handleKeyDown);                          
+  // One-time Setup
+  var interval = setInterval(newFrame, KEY_INTERVAL);   // Execute newFrame every 16.67ms
+  $(document).on('keydown', handleKeyDown);             // Listen for keys being pressed
+  $(document).on('keyup', handleKeyUp);                 // Listen for keys being released
 
   ////////////////////////////////////////////////////////////////////////////////
   ///////////////////////// CORE LOGIC ///////////////////////////////////////////
@@ -47,8 +48,9 @@ const KEY = {
   by calling this function and executing the code inside.
   */
   function newFrame() {
-    
-
+    repositionGameItem();
+    handleWallCollisions();
+    redrawGameItem();
   }
   
   /* 
@@ -57,30 +59,68 @@ const KEY = {
   
   Note: You can have multiple event handlers for different types of events.
   */
-  function handleKeyDown(event) {
- if (event.which === KEY.LEFT) {
-    console.log("left pressed");
-  } else if (event.which === KEY.UP) {
-    console.log("up pressed");
-  } else if (event.which === KEY.RIGHT) {
-    console.log("right pressed");
-  } else if (event.which === KEY.DOWN) {
-    console.log("down pressed");
-  } console.log(event.which);
-}
+   function handleKeyDown(event) {
+    if (event.which === KEY.LEFT) {
+      walker.speedX = -5;
+    } else if (event.which === KEY.RIGHT) {
+      walker.speedX = 5;
+    } else if (event.which === KEY.UP) {
+      walker.speedY = -5;
+    } else if (event.which === KEY.DOWN) {
+      walker.speedY = 5;
+    }
+  }
+
+  // Triggered when a key is released
+  function handleKeyUp(event) {
+    if (event.which === KEY.LEFT || event.which === KEY.RIGHT) {
+      walker.speedX = 0;
+    }
+    if (event.which === KEY.UP || event.which === KEY.DOWN) {
+      walker.speedY = 0;
+    }
+  }
   
 
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// HELPER FUNCTIONS ////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
+ function repositionGameItem() {
+    walker.positionX += walker.speedX;
+    walker.positionY += walker.speedY;
+  }
 
-  
+  // Keeps the walker contained within the #board container
+  function handleWallCollisions() {
+    // Horizontal left wall
+    if (walker.positionX < 0) {
+      walker.positionX = 0;
+    }
+    // Horizontal right wall
+    else if (walker.positionX > board.width - walker.width) {
+      walker.positionX = board.width - walker.width;
+    }
+    
+    // Vertical top wall
+    if (walker.positionY < 0) {
+      walker.positionY = 0;
+    }
+    // Vertical bottom wall
+    else if (walker.positionY > board.height - walker.height) {
+      walker.positionY = board.height - walker.height;
+    }
+  }
+
+  // Redraws the walker element on the DOM using CSS absolute values
+  function redrawGameItem() {
+    $("#walker").css("left", walker.positionX);
+    $("#walker").css("top", walker.positionY);
+  }
+
+  // Safely shuts down the execution cycle
   function endGame() {
-    // stop the interval timer
     clearInterval(interval);
-
-    // turn off event handlers
     $(document).off();
   }
-  
 }
+
